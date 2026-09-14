@@ -7,8 +7,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./praxis.yaml:/etc/praxis/praxis.yaml
-    command: ["-c", "/etc/praxis/praxis.yaml"]
+      - ./praxis.yaml:/etc/praxis/config.yaml:ro
     depends_on:
       - llm-d-sc
       - vllm-gpu
