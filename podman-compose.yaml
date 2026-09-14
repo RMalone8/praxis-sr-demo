@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  praxis:
+    image: ghcr.io/praxis-proxy/praxis:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./praxis.yaml:/etc/praxis/praxis.yaml
+    command: ["-c", "/etc/praxis/praxis.yaml"]
+    depends_on:
+      - semantic-router
+      - vllm-gpu
+      - vllm-cpu
+
+  semantic-router:
+    image: ghcr.io/vllm-project/semantic-router:latest
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./sr-config.yaml:/etc/semantic-router/config.yaml
+
+  # NVIDIA L40S GPU Backend for Heavy/Reasoning Tasks
+  vllm-gpu:
+    image: registry.redhat.io/rhaii/vllm-cuda-rhel9:3.5.1-1788369031
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command:
+      - "python3"
+      - "-m"
+      - "vllm.entrypoints.openai.api_server"
+      - "--model"
+      - "Qwen/Qwen2.5-7B-Instruct"
+      - "--port"
+      - "8000"
+      - "--gpu-memory-utilization"
+      - "0.90"
+
+  # Host CPU Backend for Lightweight Tasks
+  vllm-cpu:
+    image: registry.redhat.io/rhaii/vllm-cpu-rhel9:3.5.1-1788368981
+    environment:
+      - OMP_NUM_THREADS=16
+      - VLLM_CPU_KV_CACHE_SPACE=8
+    command:
+      - "python3"
+      - "-m"
+      - "vllm.entrypoints.openai.api_server"
+      - "--model"
+      - "Qwen/Qwen2.5-1.5B-Instruct"
+      - "--port"
+      - "8000"
+      - "--device"
+      - "cpu"

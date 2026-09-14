@@ -1,0 +1,14 @@
+version: v0.1
+routing:
+  signals:
+    keywords:
+      - name: reasoning_workload
+        operator: OR
+        keywords: ["derivative", "integral", "matrix", "refactor", "algorithm", "proof"]
+  decisions:
+    - name: GPU_Heavy_Path
+      condition: "signals.reasoning_workload == true"
+      target_backend: "vllm-gpu"
+    - name: CPU_Fast_Path
+      condition: "default"
+      target_backend: "vllm-cpu"
