@@ -71,6 +71,8 @@ services:
       - "0.0.0.0"
       - "--port"
       - "8000"
+      - "--gpu-memory-utilization"
+      - "0.50"
 
 volumes:
   rhaii-cache:
