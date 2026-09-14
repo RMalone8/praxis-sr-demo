@@ -26,7 +26,10 @@ services:
       LLM_D_SC_LISTEN: "0.0.0.0:50051"
 
   vllm-gpu:
+    container_name: vllm-gpu
     image: registry.redhat.io/rhaii/vllm-cuda-rhel9:3.5.1-1788369031
+    ports:
+      - "8000:8000"
     ipc: host
     security_opt:
       - label=disable
@@ -46,10 +49,13 @@ services:
       - "--port"
       - "8000"
       - "--gpu-memory-utilization"
-      - "0.90"
+      - "0.70"
 
   vllm-cpu:
+    container_name: vllm-cpu
     image: registry.redhat.io/rhaii/vllm-cpu-rhel9:3.5.1-1788368981
+    ports:
+      - "8000:8000"
     ipc: host
     security_opt:
       - label=disable
@@ -67,8 +73,6 @@ services:
       - "0.0.0.0"
       - "--port"
       - "8000"
-      - "--device"
-      - "cpu"
 
 volumes:
   rhaii-cache:
