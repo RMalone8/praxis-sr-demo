@@ -2,28 +2,34 @@ listeners:
   - name: ai-gateway
     address: "0.0.0.0:8080"
     filter_chains:
-      - observability
-      - semantic-router-classifier
-      - dynamic-routing
+      - inference-routing
 
 filter_chains:
-  - name: observability
+  - name: inference-routing
     filters:
       - filter: request_id
       - filter: access_log
 
-  # Passes request body to the vLLM Semantic Router gRPC/HTTP endpoint
-  - name: semantic-router-classifier
-    filters:
-      - filter: external_processor
-        endpoint: "http://semantic-router:50051"
+      - filter: llm_d_sc
+        endpoint: "llm-d-sc:50051"
+        default_cluster: vllm-cpu
+        routes:
+          - label: SIMPLE
+            cluster: vllm-cpu
+          - label: MEDIUM
+            cluster: vllm-cpu
+          - label: COMPLEX
+            cluster: vllm-gpu
+          - label: REASONING
+            cluster: vllm-gpu
         timeout_ms: 100
+        connect_timeout_ms: 1000
+        min_score: 0.0
+        on_unavailable: default_cluster
+        on_resource_exhausted: default_cluster
+        emit_headers: true
 
-  # Reads X-Target-Backend header returned by Semantic Router
-  - name: dynamic-routing
-    filters:
-      - filter: router
-        header_key: "X-Target-Backend"
+      - filter: load_balancer
         clusters:
           - name: vllm-gpu
             endpoints: ["vllm-gpu:8000"]

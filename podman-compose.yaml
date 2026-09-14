@@ -2,23 +2,29 @@ version: '3.8'
 
 services:
   praxis:
-    image: ghcr.io/praxis-proxy/praxis:latest
+    # Built from the modified Praxis checkout with llm-d-sc-praxis-filter compiled in.
+    image: ${PRAXIS_IMAGE:-praxis-llm-d-sc:latest}
     ports:
       - "8080:8080"
     volumes:
       - ./praxis.yaml:/etc/praxis/praxis.yaml
     command: ["-c", "/etc/praxis/praxis.yaml"]
     depends_on:
-      - semantic-router
+      - llm-d-sc
       - vllm-gpu
       - vllm-cpu
 
-  semantic-router:
-    image: ghcr.io/vllm-project/semantic-router/extproc:v0.3.0
-    ports:
-      - "50051:50051"
+  # Build this image from llm-d-incubation/llm-d-semantic-classifier.
+  # The classifier image does not contain a model; mount the complexity
+  # ModelCar from the EC2 host at /models.
+  llm-d-sc:
+    image: ${LLM_D_SC_IMAGE:-llm-d-sc:latest}
     volumes:
-      - ./sr-config.yaml:/etc/semantic-router/config.yaml
+      - ${LLM_D_SC_MODEL_DIR:?Set LLM_D_SC_MODEL_DIR to the host complexity ModelCar directory}:/models:ro,Z
+    environment:
+      LLM_D_SC_MODEL_DIR: /models
+      LLM_D_SC_CLASSIFIER: complexity
+      LLM_D_SC_LISTEN: "0.0.0.0:50051"
 
   # NVIDIA L40S GPU Backend for Heavy/Reasoning Tasks
   vllm-gpu:
