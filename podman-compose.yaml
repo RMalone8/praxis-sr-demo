@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./praxis.yaml:/etc/praxis/config.yaml:ro
+      - ./praxis.yaml:/etc/praxis/config.yaml:ro,Z
     depends_on:
       - llm-d-sc
       - vllm-gpu
@@ -25,42 +25,50 @@ services:
       LLM_D_SC_CLASSIFIER: complexity
       LLM_D_SC_LISTEN: "0.0.0.0:50051"
 
-  # NVIDIA L40S GPU Backend for Heavy/Reasoning Tasks
   vllm-gpu:
     image: registry.redhat.io/rhaii/vllm-cuda-rhel9:3.5.1-1788369031
+    ipc: host
+    security_opt:
+      - label=disable
+    userns_mode: "keep-id:uid=1001"
+    devices:
+      - nvidia.com/gpu=all
     environment:
-      - CUDA_VISIBLE_DEVICES=0
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_HUB_OFFLINE: "0"
+    volumes:
+      - rhaii-cache:/opt/app-root/src/.cache:Z
     command:
-      - "python3"
-      - "-m"
-      - "vllm.entrypoints.openai.api_server"
       - "--model"
       - "Qwen/Qwen2.5-7B-Instruct"
+      - "--host"
+      - "0.0.0.0"
       - "--port"
       - "8000"
       - "--gpu-memory-utilization"
       - "0.90"
 
-  # Host CPU Backend for Lightweight Tasks
   vllm-cpu:
     image: registry.redhat.io/rhaii/vllm-cpu-rhel9:3.5.1-1788368981
+    ipc: host
+    security_opt:
+      - label=disable
+    userns_mode: "keep-id:uid=1001"
     environment:
-      - OMP_NUM_THREADS=16
-      - VLLM_CPU_KV_CACHE_SPACE=8
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_HUB_OFFLINE: "0"
+      VLLM_CPU_KV_CACHE_SPACE: "8"
+    volumes:
+      - rhaii-cache:/opt/app-root/src/.cache:Z
     command:
-      - "python3"
-      - "-m"
-      - "vllm.entrypoints.openai.api_server"
       - "--model"
       - "Qwen/Qwen2.5-1.5B-Instruct"
+      - "--host"
+      - "0.0.0.0"
       - "--port"
       - "8000"
       - "--device"
       - "cpu"
+
+volumes:
+  rhaii-cache:
