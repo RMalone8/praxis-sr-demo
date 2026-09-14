@@ -14,7 +14,7 @@ services:
       - vllm-cpu
 
   semantic-router:
-    image: ghcr.io/vllm-project/semantic-router:latest
+    image: ghcr.io/vllm-project/semantic-router/extproc:v0.3.0
     ports:
       - "50051:50051"
     volumes:
