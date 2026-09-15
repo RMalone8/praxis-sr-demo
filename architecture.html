@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Praxis routing architecture</title>
+<style>
+:root{color-scheme:dark;--bg:#07111f;--panel:#0d1b2d;--line:#2b4865;--text:#e9f2ff;--muted:#9db1c8;--blue:#64b5ff;--cyan:#55e6d0;--violet:#ad9cff;--amber:#ffc76a}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;color:var(--text);background:radial-gradient(circle at 15% 5%,#17385a 0,transparent 30%),radial-gradient(circle at 90% 95%,#173c3b 0,transparent 28%),var(--bg);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.graphic{width:min(1040px,100%);overflow:hidden;border:1px solid #23415d;border-radius:24px;background:linear-gradient(145deg,rgba(13,27,45,.97),rgba(7,17,31,.97));box-shadow:0 24px 80px #00000059}.canvas{padding:26px 30px 30px}svg{display:block;width:100%;height:auto}.label{fill:var(--muted);font-size:12px;font-weight:700;letter-spacing:.07em}.small{fill:var(--muted);font-size:12px}.title{fill:var(--text);font-size:18px;font-weight:700}.number{fill:#06101c;font-size:12px;font-weight:800}.box{fill:var(--panel);stroke:var(--line);stroke-width:1.5}.box-blue{fill:#102d49;stroke:var(--blue)}.box-cyan{fill:#103b3c;stroke:var(--cyan)}.box-violet{fill:#28234b;stroke:var(--violet)}.box-amber{fill:#45331a;stroke:var(--amber)}.pill{fill:#172b41;stroke:#365775;stroke-width:1}.pill-text{fill:#c5d7ea;font-size:11px;font-weight:600}.flow{fill:none;stroke:var(--blue);stroke-width:2.5;marker-end:url(#arrow-blue)}.flow-cyan{fill:none;stroke:var(--cyan);stroke-width:2.5;stroke-dasharray:7 6;marker-end:url(#arrow-cyan)}.cluster{fill:#10243a80;stroke:#31516f;stroke-dasharray:6 6;stroke-width:1.5}.cluster-label{fill:var(--text);font-size:15px;font-weight:700}.packet-path{fill:none;stroke:none}.packet{filter:drop-shadow(0 0 6px currentColor);pointer-events:none}.legend{display:flex;justify-content:center;gap:28px;padding:18px 24px 22px;border-top:1px solid #1d354c;color:var(--muted);font-size:12px}.legend span{display:inline-flex;align-items:center;gap:8px}.swatch{width:24px;height:3px;border-radius:4px;background:var(--blue)}.swatch.cyan{background:var(--cyan)}@media(prefers-reduced-motion:reduce){.packet{display:none}}@media(max-width:700px){body{padding:10px}.canvas{padding:14px 8px 18px;overflow-x:auto}svg{min-width:920px}.legend{justify-content:flex-start;flex-wrap:wrap}}
+</style>
+</head>
+<body><main class="graphic"><section class="canvas" aria-label="Praxis routing architecture"><svg viewBox="0 0 980 850" role="img" aria-labelledby="diagram-title diagram-desc">
+<title id="diagram-title">Praxis and llm-d-sc routing architecture</title><desc id="diagram-desc">A request enters Praxis directly, Praxis calls llm-d-sc beside it for classification, and the result routes to separate CPU or GPU llm-d servers and independent node clusters with scalable replicas.</desc>
+<defs><marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 z" fill="#64b5ff"/></marker><marker id="arrow-cyan" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 z" fill="#55e6d0"/></marker></defs>
+<path id="packet-request" class="packet-path" d="M490 124 V236"/><path id="packet-classify" class="packet-path" d="M490 236 H623 V225 H720"/><path id="packet-result" class="packet-path" d="M720 256 H623 V236 H490"/><path id="packet-cpu" class="packet-path" d="M490 236 V350 H245 V439 V562 H138 V686"/><path id="packet-gpu" class="packet-path" d="M490 236 V350 H735 V439 V562 H603 V686"/><circle id="request-dot" class="packet" r="7" fill="#64b5ff"/>
+
+<!-- Request directly above Praxis -->
+<text x="0" y="30" class="label">REQUEST</text><rect x="290" y="48" width="400" height="76" rx="18" class="box-blue"/><text x="330" y="84" class="title">Client / application</text><text x="330" y="105" class="small">OpenAI-compatible POST /v1/chat/completions</text><path d="M490 124 V176" class="flow"/>
+
+<!-- Praxis centered beneath request; classifier sits to its side -->
+<text x="0" y="160" class="label">GATEWAY + CLASSIFICATION</text><rect x="357" y="180" width="266" height="112" rx="18" class="box-blue"/><text x="385" y="218" class="title">Praxis / AI Gateway</text><text x="385" y="242" class="small">AI request routing gateway</text><rect x="385" y="260" width="82" height="21" rx="10" class="pill"/><text x="426" y="274" text-anchor="middle" class="pill-text">llm_d_sc</text><rect x="475" y="260" width="104" height="21" rx="10" class="pill"/><text x="527" y="274" text-anchor="middle" class="pill-text">load_balancer</text>
+<rect x="720" y="180" width="210" height="112" rx="18" class="box-cyan"/><text x="750" y="223" class="title">llm-d-sc</text><text x="750" y="246" class="small">Returns route label</text><rect x="750" y="257" width="70" height="21" rx="10" class="pill"/><text x="785" y="271" text-anchor="middle" class="pill-text">SIMPLE</text><rect x="828" y="257" width="70" height="21" rx="10" class="pill"/><text x="863" y="271" text-anchor="middle" class="pill-text">COMPLEX</text><path d="M623 225 H720" class="flow-cyan"/><path d="M720 256 H623" class="flow-cyan"/>
+
+<!-- Separate CPU and GPU logical llm-d servers -->
+<path d="M490 292 V350 H245 V382" class="flow"/><path d="M490 292 V350 H735 V382" class="flow"/><text x="0" y="370" class="label">LLM-D SERVER POOLS</text>
+<rect x="90" y="386" width="310" height="106" rx="18" class="box-violet"/><text x="116" y="425" class="title">llm-d CPU server</text><text x="116" y="450" class="small">SIMPLE / MEDIUM requests</text><rect x="116" y="461" width="104" height="21" rx="10" class="pill"/><text x="168" y="475" text-anchor="middle" class="pill-text">logical pool</text>
+<rect x="580" y="386" width="310" height="106" rx="18" class="box-amber"/><text x="606" y="425" class="title">llm-d GPU server</text><text x="606" y="450" class="small">COMPLEX / REASONING requests</text><rect x="606" y="461" width="104" height="21" rx="10" class="pill"/><text x="658" y="475" text-anchor="middle" class="pill-text">logical pool</text><path d="M245 492 V562" class="flow"/><path d="M735 492 V562" class="flow"/>
+
+<!-- Two independent, unconnected clusters; each implies replicas 1..N -->
+<text x="0" y="550" class="label">DISTRIBUTED NODE CLUSTERS</text><rect x="55" y="566" width="405" height="220" rx="20" class="cluster"/><text x="82" y="602" class="cluster-label">CPU node cluster</text><text x="82" y="625" class="small">Independent compute pool</text><rect x="78" y="650" width="120" height="72" rx="13" class="box-violet"/><text x="138" y="681" text-anchor="middle" class="small">vLLM CPU</text><text x="138" y="700" text-anchor="middle" class="small">Replica 1</text><rect x="216" y="650" width="120" height="72" rx="13" class="box-violet"/><text x="276" y="681" text-anchor="middle" class="small">vLLM CPU</text><text x="276" y="700" text-anchor="middle" class="small">Replica 2</text><text x="353" y="690" text-anchor="middle" class="title">…</text><rect x="366" y="650" width="78" height="72" rx="13" class="box-violet"/><text x="405" y="681" text-anchor="middle" class="small">vLLM CPU</text><text x="405" y="700" text-anchor="middle" class="small">Replica N</text>
+<rect x="520" y="566" width="405" height="220" rx="20" class="cluster"/><text x="547" y="602" class="cluster-label">GPU node cluster</text><text x="547" y="625" class="small">Independent compute pool</text><rect x="543" y="650" width="120" height="72" rx="13" class="box-amber"/><text x="603" y="681" text-anchor="middle" class="small">vLLM GPU</text><text x="603" y="700" text-anchor="middle" class="small">Replica 1</text><rect x="681" y="650" width="120" height="72" rx="13" class="box-amber"/><text x="741" y="681" text-anchor="middle" class="small">vLLM GPU</text><text x="741" y="700" text-anchor="middle" class="small">Replica 2</text><text x="818" y="690" text-anchor="middle" class="title">…</text><rect x="831" y="650" width="78" height="72" rx="13" class="box-amber"/><text x="870" y="681" text-anchor="middle" class="small">vLLM GPU</text><text x="870" y="700" text-anchor="middle" class="small">Replica N</text>
+</svg></section><footer class="legend"><span><i class="swatch"></i> request / routing path</span><span><i class="swatch cyan"></i> classifier request + result</span></footer></main><script>
+const dot = document.querySelector('#request-dot');
+const paths = {
+  request: document.querySelector('#packet-request'),
+  classify: document.querySelector('#packet-classify'),
+  result: document.querySelector('#packet-result'),
+  cpu: document.querySelector('#packet-cpu'),
+  gpu: document.querySelector('#packet-gpu'),
+};
+const sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
+async function travel(path, color, duration) {
+  const length = path.getTotalLength();
+  dot.setAttribute('fill', color);
+  dot.style.color = color;
+  const started = performance.now();
+  return new Promise(resolve => {
+    function frame(now) {
+      const progress = Math.min((now - started) / duration, 1);
+      const point = path.getPointAtLength(length * progress);
+      dot.setAttribute('cx', point.x);
+      dot.setAttribute('cy', point.y);
+      if (progress < 1) requestAnimationFrame(frame); else resolve();
+    }
+    requestAnimationFrame(frame);
+  });
+}
+async function route() {
+  let target = 'cpu';
+  while (true) {
+    await travel(paths.request, '#64b5ff', 650);
+    await travel(paths.classify, '#55e6d0', 600);
+    await travel(paths.result, '#55e6d0', 600);
+    await travel(paths[target], target === 'cpu' ? '#ad9cff' : '#ffc76a', 1300);
+    await sleep(500);
+    target = target === 'cpu' ? 'gpu' : 'cpu';
+  }
+}
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) route();
+</script></body></html>
