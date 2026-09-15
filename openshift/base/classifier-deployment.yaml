@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-d-sc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: llm-d-sc
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: llm-d-sc
+        app.kubernetes.io/component: semantic-classifier
+    spec:
+      automountServiceAccountToken: false
+      initContainers:
+        # This ModelCar must be built from the artifact obtained with
+        # ./hack/fetch-model --classifier complexity and pinned by digest in a
+        # production overlay. It contains only /models, never the service.
+        - name: modelcar
+          image: quay.io/rmalone/llm-d-sc-modelcar:latest
+          command: ["/bin/sh", "-c", "cp -R /models/. /shared/"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: model
+              mountPath: /shared
+      containers:
+        - name: llm-d-sc
+          image: quay.io/rmalone/llm-d-sc:latest
+          env:
+            - name: LLM_D_SC_MODEL_DIR
+              value: /models
+            - name: LLM_D_SC_CLASSIFIER
+              value: complexity
+            - name: LLM_D_SC_LISTEN
+              value: "0.0.0.0:50051"
+          ports:
+            - name: grpc
+              containerPort: 50051
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 3
+            periodSeconds: 2
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: model
+              mountPath: /models
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: model
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

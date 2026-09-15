@@ -1,0 +1,26 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: vllm-cpu
+  annotations:
+    serving.kserve.io/deploymentMode: RawDeployment
+spec:
+  predictor:
+    minReplicas: 1
+    maxReplicas: 3
+    model:
+      modelFormat:
+        name: vLLM
+      runtime: vllm-cpu-x86-runtime
+      storageUri: hf://Qwen/Qwen2.5-1.5B-Instruct
+      args:
+        - --served-model-name=qwen2.5-1.5b
+        - --max-model-len=4096
+        - --gpu-memory-utilization=0.50
+      resources:
+        requests:
+          cpu: "4"
+          memory: 12Gi
+        limits:
+          cpu: "8"
+          memory: 16Gi

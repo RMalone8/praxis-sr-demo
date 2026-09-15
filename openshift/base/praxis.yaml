@@ -1,0 +1,43 @@
+insecure_options:
+  allow_private_upstreams: true
+
+# Keep the operational endpoint private to the Pod. The Service and Route only
+# expose the data listener on 8080.
+admin:
+  address: "127.0.0.1:9901"
+
+listeners:
+  - name: ai-gateway
+    address: "0.0.0.0:8080"
+    filter_chains:
+      - inference-routing
+
+filter_chains:
+  - name: inference-routing
+    filters:
+      - filter: request_id
+      - filter: access_log
+      - filter: llm_d_sc
+        endpoint: "llm-d-sc:50051"
+        default_cluster: vllm-cpu
+        routes:
+          - label: SIMPLE
+            cluster: vllm-cpu
+          - label: MEDIUM
+            cluster: vllm-cpu
+          - label: COMPLEX
+            cluster: vllm-gpu
+          - label: REASONING
+            cluster: vllm-gpu
+        timeout_ms: 100
+        connect_timeout_ms: 1000
+        min_score: 0.0
+        on_unavailable: default_cluster
+        on_resource_exhausted: default_cluster
+        emit_headers: true
+      - filter: load_balancer
+        clusters:
+          - name: vllm-gpu
+            endpoints: ["vllm-gpu-predictor:80"]
+          - name: vllm-cpu
+            endpoints: ["vllm-cpu-predictor:80"]

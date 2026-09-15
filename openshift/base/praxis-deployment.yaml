@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: praxis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: praxis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: praxis
+        app.kubernetes.io/component: gateway
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: praxis
+          image: quay.io/rmalone/praxis-llm-d-sc:latest
+          # Avoid the image's broken -c entrypoint and select the mounted file
+          # through the environment instead.
+          command: ["praxis"]
+          env:
+            - name: PRAXIS_CONFIG
+              value: /etc/praxis/config.yaml
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: admin
+              containerPort: 9901
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command: ["wget", "-qO-", "http://127.0.0.1:9901/ready"]
+            initialDelaySeconds: 3
+          livenessProbe:
+            exec:
+              command: ["wget", "-qO-", "http://127.0.0.1:9901/healthy"]
+            initialDelaySeconds: 5
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: config
+              mountPath: /etc/praxis
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: praxis-config
+        - name: tmp
+          emptyDir: {}
