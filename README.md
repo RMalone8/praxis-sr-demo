@@ -14,7 +14,6 @@ And then test the stack once it's all up:
 curl -sS http://127.0.0.1:8080/v1/chat/completions \
   -H 'Content-Type: application/json' \
   -d '{
-    "model": "router-test",
     "messages": [{"role": "user", "content": "What is the capital of France?"}],
     "max_tokens": 64
   }'
