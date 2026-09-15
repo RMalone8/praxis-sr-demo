@@ -1,7 +1,5 @@
 # Praxis & llm-d-sc Demo
 
-**Note**: images are currently local as quay remains read-only.
-
 ```bash
 cp .env.example .env
 # edit your variables
