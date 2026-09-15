@@ -4,7 +4,7 @@ services:
   praxis:
     # Built from the modified Praxis checkout with llm-d-sc-praxis-filter compiled in.
     container_name: praxis
-    image: ${PRAXIS_IMAGE:-praxis-llm-d-sc:latest}
+    image: quay.io/rmalone/praxis-llm-d-sc:latest
     ports:
       - "8080:8080"
     volumes:
@@ -19,7 +19,7 @@ services:
   # ModelCar from the EC2 host at /models.
   llm-d-sc:
     container_name: llm-d-sc
-    image: ${LLM_D_SC_IMAGE:-llm-d-sc:latest}
+    image: quay.io/rmalone/llm-d-sc:latest
     volumes:
       - ${LLM_D_SC_MODEL_DIR:?Set LLM_D_SC_MODEL_DIR to the host complexity ModelCar directory}:/models:ro,Z
     environment:
