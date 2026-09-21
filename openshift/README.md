@@ -17,10 +17,12 @@ kustomize build openshift/overlays/rhoai
 oc apply -k openshift/overlays/rhoai
 ```
 
-The overlay includes Open WebUI, a small persistent volume claim for
-`/app/backend/data`, and a bootstrap Job. Open WebUI auth is disabled for this
-demo. The Job uses Open WebUI's built-in no-auth bootstrap account to create or
-update `praxis_from_model` and enable it globally.
+The overlay includes Open WebUI and a small persistent volume claim for
+`/app/backend/data`. Open WebUI auth is disabled for this demo. It discovers
+the single logical model `Semantic-Qwen` from Praxis's `/v1/models` response
+and sends that value in completion requests. Praxis routes the request based on
+prompt complexity. Completion responses may report a physical serving-model
+name; Open WebUI does not display or use it for routing.
 
 Get the UI route with:
 
@@ -33,19 +35,12 @@ The Open WebUI image is pinned to `v0.11.1` in the base manifests. Override
 that image in an environment-specific overlay when using another tested
 version.
 
-If the Filter source changes, update the ConfigMap and rerun the one-shot
-bootstrap Job:
+The Open WebUI database remains in the `openwebui-data` PVC, so chats and
+settings survive pod restarts.
 
-```console
-oc -n praxis-sr-demo delete job openwebui-bootstrap --ignore-not-found
-oc apply -k openshift/overlays/rhoai
-```
-
-The Open WebUI database remains in the `openwebui-data` PVC, so chats,
-settings, and the installed Filter survive pod restarts.
-
-KServe creates `vllm-cpu-predictor` and `vllm-gpu-predictor` Services in raw
-deployment mode; the Praxis config uses those internal addresses.
+KServe creates `vllm-cpu-predictor` and `vllm-gpu-predictor` headless Services in
+raw deployment mode; the Praxis config targets their vLLM listener on port
+`8080`.
 
 ## Test the CPU path
 

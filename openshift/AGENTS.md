@@ -26,7 +26,8 @@ The current overlay targets namespace `praxis-sr-demo`. Although the base names
 - `llm-d-sc` receives its model through the ModelCar init container and serves
   gRPC on `50051`.
 - RawDeployment KServe creates `vllm-cpu-predictor` and
-  `vllm-gpu-predictor`; `base/praxis.yaml` routes to those names on port `80`.
+  `vllm-gpu-predictor` headless Services; `base/praxis.yaml` routes to their
+  vLLM listeners on port `8080`.
 - Both `InferenceService` resources depend on cluster-provided runtime names.
   Do not assume those names are portable to another cluster.
 
@@ -46,4 +47,3 @@ asked for deployment.
 When changing image names, route hostnames, namespaces, runtime names, model
 URIs, or resource requests, treat them as environment-specific choices and
 update the README when operator action is required.
-

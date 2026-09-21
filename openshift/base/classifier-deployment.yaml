@@ -15,9 +15,6 @@ spec:
     spec:
       automountServiceAccountToken: false
       initContainers:
-        # This ModelCar must be built from the artifact obtained with
-        # ./hack/fetch-model --classifier complexity and pinned by digest in a
-        # production overlay. It contains only /models, never the service.
         - name: modelcar
           image: quay.io/rmalone/llm-d-sc-modelcar:latest
           command: ["/bin/sh", "-c", "cp -R /models/. /shared/"]

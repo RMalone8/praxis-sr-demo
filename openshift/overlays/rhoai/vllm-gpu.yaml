@@ -18,7 +18,7 @@ spec:
       runtime: vllm-cuda-runtime
       storageUri: hf://Qwen/Qwen2.5-7B-Instruct
       args:
-        - --served-model-name=qwen2.5-7b
+        - --served-model-name=Semantic-Qwen
         - --gpu-memory-utilization=0.70
       resources:
         requests:

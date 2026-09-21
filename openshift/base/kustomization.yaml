@@ -13,18 +13,11 @@ resources:
   - openwebui-deployment.yaml
   - openwebui-service.yaml
   - openwebui-route.yaml
-  - openwebui-bootstrap-job.yaml
 
 configMapGenerator:
   - name: praxis-config
     files:
       - config.yaml=praxis.yaml
-  - name: openwebui-filter
-    files:
-      - from_model.py=openwebui/from_model.py
-  - name: openwebui-bootstrap
-    files:
-      - bootstrap.py=openwebui/bootstrap.py
 
 generatorOptions:
   disableNameSuffixHash: false
