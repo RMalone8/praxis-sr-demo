@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: openwebui-bootstrap
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap
+          image: ghcr.io/open-webui/open-webui:v0.11.1
+          command: ["python3", "/bootstrap/bootstrap.py"]
+          env:
+            - name: OPENWEBUI_URL
+              value: http://openwebui:8080
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /bootstrap/bootstrap.py
+              subPath: bootstrap.py
+              readOnly: true
+            - name: filter
+              mountPath: /bootstrap/from_model.py
+              subPath: from_model.py
+              readOnly: true
+      volumes:
+        - name: bootstrap
+          configMap:
+            name: openwebui-bootstrap
+        - name: filter
+          configMap:
+            name: openwebui-filter
