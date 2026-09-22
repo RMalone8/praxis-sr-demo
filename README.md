@@ -3,7 +3,13 @@
 ### Deploy
 
 ```bash
-# edit your variables
+# download the pinned classifier model (requires the Hugging Face CLI)
+hf download cnuland/llm-d-sc-complexity \
+  model.safetensors tokenizer.json config.json modules.json 1_Pooling/config.json \
+  --revision c5f55ef419d268ba843c544dc00988d1e9878044 \
+  --local-dir ./models/llm-d-sc-complexity
+
+# point LLM_D_SC_MODEL_DIR in .env at the downloaded directory
 cp .env.example .env
 vi .env
 
