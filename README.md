@@ -38,10 +38,6 @@ Praxis classifies the prompt with `llm-d-sc` and routes it to the CPU or GPU vLL
 ![Curl responses](imgs/curl-responses.png)
 *Curl responses*
 
-## Architecture
-
-[The intended demo architecture](architecture.html)
-
 ## OpenShift stack
 
 The RHOAI overlay deploys Open WebUI, the trace UI, Praxis, `llm-d-sc`, and
