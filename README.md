@@ -1,11 +1,17 @@
 # Praxis & llm-d-sc Demo
 
+### Deploy
+
 ```bash
-cp .env.example .env
 # edit your variables
+cp .env.example .env
 vi .env
 
-podman compose -f podman-compose.yaml up -d
+# ensure you have access to the registry
+podman login registry.redhat.io
+
+# start the stack!
+podman compose -f podman-compose/podman-compose.yaml up -d
 ```
 
 And then test the stack once it's all up:
@@ -21,24 +27,7 @@ curl -sS http://127.0.0.1:8080/v1/chat/completions \
 
 Praxis classifies the prompt with `llm-d-sc` and routes it to the CPU or GPU vLLM backend.
 
-## Live request traces
-
-The local stack starts Open WebUI at `http://127.0.0.1:3000`, configured to
-use the trace relay and topology at `http://127.0.0.1:8090`. Send
-OpenAI-compatible traffic to the latter (for example, replace `8080` with
-`8090` in the smoke request) to persist a trace.
-The relay forwards the request ID to Praxis. Its internal CPU and GPU marker
-ports forward Praxis's selected backend request to vLLM and identify that route
-on the response, allowing the browser to highlight the observed path.
-Request and response bodies are deliberately not stored; the local `trace-data`
-volume retains the most recent 250 trace records.
-
-In OpenShift, Open WebUI is configured to use the relay automatically. Build
-and publish `trace-ui/Dockerfile` as `quay.io/rmalone/praxis-trace-ui:latest`
-(or override the deployment image in your overlay), then open the `trace-ui`
-Route to view the topology. This image name and `latest` tag are demo choices.
-
-## Results
+### Results
 
 ![Compose logs](imgs/compose-logs.png)
 *Compose logs*
@@ -52,7 +41,37 @@ Route to view the topology. This image name and `latest` tag are demo choices.
 
 ## OpenShift stack
 
-The OpenShift stack runs Open WebUI, Praxis, `llm-d-sc`, the trace UI, and CPU and GPU vLLM predictors. Praxis classifies each request and routes it to the appropriate predictor.
+The RHOAI overlay deploys Open WebUI, the trace UI, Praxis, `llm-d-sc`, and
+CPU and GPU KServe vLLM predictors. Praxis classifies each request and routes
+it to the appropriate predictor.
+
+### Minimum prerequisites
+
+- `oc` access and `kustomize` as an authenticated OpenShift user with permission to create a namespace.
+- RHOAI/KServe installed
+- At least one schedulable NVIDIA GPU: the GPU predictor requests one
+  `nvidia.com/gpu`.
+
+### Deploy
+
+1. Apply the manifests to the cluster:
+
+   ```bash
+   oc apply -k openshift/overlays/rhoai
+   oc -n praxis-sr-demo get pods --watch
+   ```
+
+2. Model downloads and first GPU scheduling can take several minutes. Press
+   `Ctrl-C` once the pods are ready, then retrieve the UI and API URLs:
+
+   ```bash
+   WEBUI_HOST=$(oc -n praxis-sr-demo get route openwebui -o jsonpath='{.spec.host}')
+   PRAXIS_HOST=$(oc -n praxis-sr-demo get route praxis -o jsonpath='{.spec.host}')
+   echo "Open WebUI: https://${WEBUI_HOST}"
+   echo "Praxis API: https://${PRAXIS_HOST}"
+   ```
+
+### Results
 
 ![OpenShift request trace diagram](imgs/trace-diagram.png)
 

@@ -8,6 +8,3 @@ resources:
   - ../../base
   - vllm-cpu.yaml
   - vllm-gpu.yaml
-
-patches:
-  - path: route-hostname.yaml

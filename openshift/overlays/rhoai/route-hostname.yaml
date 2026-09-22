@@ -1,6 +1,0 @@
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: praxis
-spec:
-  host: praxis-praxis-sr-demo.apps.emerg.pcbk.p1.openshiftapps.com
