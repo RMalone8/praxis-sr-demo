@@ -1,37 +1,7 @@
 version: '3.8'
 
 services:
-  openwebui:
-    container_name: openwebui
-    image: ghcr.io/open-webui/open-webui:v0.11.1
-    ports:
-      - "3000:8080"
-    environment:
-      WEBUI_AUTH: "false"
-      OPENAI_API_BASE_URL: http://trace-ui:8080/v1
-    volumes:
-      - openwebui-data:/app/backend/data:Z
-    depends_on:
-      - trace-ui
-
-  trace-ui:
-    container_name: trace-ui
-    build:
-      context: ../trace-ui
-    ports:
-      - "8090:8080"
-    environment:
-      PRAXIS_UPSTREAM: http://praxis:8080
-      CPU_UPSTREAM: http://vllm-cpu:8000
-      GPU_UPSTREAM: http://vllm-gpu:8000
-      TRACE_DB_PATH: /data/traces.db
-    volumes:
-      - trace-data:/data:Z
-    depends_on:
-      - praxis
-
   praxis:
-    # Built from the modified Praxis checkout with llm-d-sc-praxis-filter compiled in.
     container_name: praxis
     image: quay.io/rmalone/praxis-llm-d-sc:latest
     ports:
@@ -43,9 +13,6 @@ services:
       - vllm-gpu
       - vllm-cpu
 
-  # Build this image from llm-d-incubation/llm-d-semantic-classifier.
-  # The classifier image does not contain a model; mount the complexity
-  # ModelCar from the EC2 host at /models.
   llm-d-sc:
     container_name: llm-d-sc
     image: quay.io/rmalone/llm-d-sc:latest
@@ -73,8 +40,6 @@ services:
     command:
       - "--model"
       - "Qwen/Qwen2.5-7B-Instruct"
-      - "--served-model-name"
-      - "qwen"
       - "--host"
       - "0.0.0.0"
       - "--port"
@@ -98,8 +63,6 @@ services:
     command:
       - "--model"
       - "Qwen/Qwen2.5-1.5B-Instruct"
-      - "--served-model-name"
-      - "qwen"
       - "--host"
       - "0.0.0.0"
       - "--port"
@@ -109,5 +72,3 @@ services:
 
 volumes:
   rhaii-cache:
-  trace-data:
-  openwebui-data:

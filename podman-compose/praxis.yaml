@@ -46,6 +46,6 @@ filter_chains:
       - filter: load_balancer
         clusters:
           - name: vllm-gpu
-            endpoints: ["trace-ui:8082"]
+            endpoints: ["vllm-gpu:8000"]
           - name: vllm-cpu
-            endpoints: ["trace-ui:8081"]
+            endpoints: ["vllm-cpu:8000"]
