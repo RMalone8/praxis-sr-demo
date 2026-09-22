@@ -38,6 +38,28 @@ version.
 The Open WebUI database remains in the `openwebui-data` PVC, so chats and
 settings survive pod restarts.
 
+## Live request traces
+
+Open WebUI sends completions through the `trace-ui` relay before Praxis. The
+relay keeps request metadata, status, duration, and the selected backend in its
+`trace-ui-data` PVC; it does not retain prompts or completion bodies. Internal
+CPU and GPU marker ports forward Praxis's selected request to the corresponding
+vLLM Service and identify that route on the response. The browser page polls
+the saved traces and animates the observed
+Open WebUI → Praxis → llm-d-sc → CPU/GPU vLLM → Open WebUI path.
+
+Before applying, build and publish `trace-ui/Dockerfile` as
+`quay.io/rmalone/praxis-trace-ui:latest`, or patch the `trace-ui` Deployment
+with an image available to the cluster. The image reference and tag are demo
+environment choices.
+
+Get the tracing page with:
+
+```console
+TRACE_HOST=$(oc -n praxis-sr-demo get route trace-ui -o jsonpath='{.spec.host}')
+echo "https://${TRACE_HOST}"
+```
+
 KServe creates `vllm-cpu-predictor` and `vllm-gpu-predictor` headless Services in
 raw deployment mode; the Praxis config targets their vLLM listener on port
 `8080`.

@@ -23,7 +23,9 @@ spec:
             - name: WEBUI_SECRET_KEY_FILE
               value: /app/backend/data/.webui_secret_key
             - name: OPENAI_API_BASE_URL
-              value: http://praxis:8080/v1
+              # The relay preserves OpenAI compatibility while recording the
+              # routing headers emitted by Praxis for the trace view.
+              value: http://trace-ui:8080/v1
           ports:
             - containerPort: 8080
           volumeMounts:

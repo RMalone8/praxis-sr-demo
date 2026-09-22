@@ -1,6 +1,35 @@
 version: '3.8'
 
 services:
+  openwebui:
+    container_name: openwebui
+    image: ghcr.io/open-webui/open-webui:v0.11.1
+    ports:
+      - "3000:8080"
+    environment:
+      WEBUI_AUTH: "false"
+      OPENAI_API_BASE_URL: http://trace-ui:8080/v1
+    volumes:
+      - openwebui-data:/app/backend/data:Z
+    depends_on:
+      - trace-ui
+
+  trace-ui:
+    container_name: trace-ui
+    build:
+      context: ../trace-ui
+    ports:
+      - "8090:8080"
+    environment:
+      PRAXIS_UPSTREAM: http://praxis:8080
+      CPU_UPSTREAM: http://vllm-cpu:8000
+      GPU_UPSTREAM: http://vllm-gpu:8000
+      TRACE_DB_PATH: /data/traces.db
+    volumes:
+      - trace-data:/data:Z
+    depends_on:
+      - praxis
+
   praxis:
     # Built from the modified Praxis checkout with llm-d-sc-praxis-filter compiled in.
     container_name: praxis
@@ -80,3 +109,5 @@ services:
 
 volumes:
   rhaii-cache:
+  trace-data:
+  openwebui-data:

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trace-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trace-ui
+  template:
+    metadata:
+      labels:
+        app: trace-ui
+    spec:
+      containers:
+        - name: trace-ui
+          image: quay.io/rmalone/praxis-trace-ui:latest
+          env:
+            - name: PRAXIS_UPSTREAM
+              value: http://praxis:8080
+            - name: CPU_UPSTREAM
+              value: http://vllm-cpu-predictor:8080
+            - name: GPU_UPSTREAM
+              value: http://vllm-gpu-predictor:8080
+            - name: TRACE_DB_PATH
+              value: /data/traces.db
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: cpu-backend
+              containerPort: 8081
+            - name: gpu-backend
+              containerPort: 8082
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: trace-ui-data

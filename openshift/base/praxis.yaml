@@ -38,7 +38,7 @@ filter_chains:
             cluster: vllm-gpu
           - label: REASONING
             cluster: vllm-gpu
-        timeout_ms: 100
+        timeout_ms: 500
         connect_timeout_ms: 1000
         min_score: 0.0
         on_unavailable: default_cluster
@@ -47,6 +47,6 @@ filter_chains:
       - filter: load_balancer
         clusters:
           - name: vllm-gpu
-            endpoints: ["vllm-gpu-predictor:8080"]
+            endpoints: ["trace-ui:8082"]
           - name: vllm-cpu
-            endpoints: ["vllm-cpu-predictor:8080"]
+            endpoints: ["trace-ui:8081"]
